@@ -380,7 +380,6 @@
 <!-- ========== TELA DE LOGIN ========== -->
 <div id="loginScreen">
     <div class="login-box">
-        <div class="login-icon">🎏</div>
         <h2>Caixa · Festa Junina</h2>
         <p>Faça login para acessar o sistema</p>
 
@@ -413,11 +412,11 @@
                 <span id="userLabel">—</span>
                 <span class="role-tag" id="roleTag">—</span>
             </div>
-            <button class="btn-logout" id="btnLogout">🚪 Sair</button>
+            <button class="btn-logout" id="btnLogout">Sair</button>
         </div>
     </div>
 
-    <div id="viewerBanner">👁️ Você está no modo <strong>somente visualização</strong>. Apenas o administrador pode adicionar, editar ou excluir registros.</div>
+    <div id="viewerBanner">Você está no modo <strong>somente visualização</strong>. Apenas o administrador pode adicionar, editar ou excluir registros.</div>
     <div id="alertBox"></div>
 
     <div class="summary-grid">
@@ -480,12 +479,12 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="10" class="loading">⏳ Carregando...</td></tr>
+                <tr><td colspan="10" class="loading">Carregando...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <footer>🔐 Supabase conectado · Tabela: cash_transactions</footer>
+    <footer>Supabase conectado · Tabela: cash_transactions</footer>
 </div>
 </div>
 
@@ -495,8 +494,7 @@
     // =====================================================
     const SUPABASE_URL  = "https://xfjhbqyynbpozrpvvbxq.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmamhicXl5bmJwb3pycHZ2YnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTYxOTYsImV4cCI6MjA5MjQ5MjE5Nn0.IWVrNheMDIZblqcyMUaR4-QD2Up6xykhI_HtrtUjpZw";
-
-    // ⚠️ Troque as senhas abaixo antes de publicar!
+    //config senhas 
     const USERS = {
         admin:  { user: "henrique",  senha: "admin2026",  role: "admin"  },
         viewer: { user: "sala",      senha: "sala2026",   role: "viewer" }
