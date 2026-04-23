@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sistema de Caixa | Festa Junina</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f5f3ef;
+            padding: 24px 20px;
+            color: #2c2a28;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* cabeçalho */
+        .header {
+            margin-bottom: 28px;
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #c75c1e, #e67e22);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .header p {
+            color: #5b4b3a;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* Cards de resumo */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 18px 16px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            border: 1px solid #f0e2d4;
+        }
+        .card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: #a16234;
+            margin-bottom: 12px;
+        }
+        .card .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1f1b17;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        .card.saldo .value {
+            color: #2b7e3a;
+        }
+        .card.entrada .value { color: #0f6e3f; }
+        .card.saida .value { color: #b13e3e; }
+        .card-sub {
+            font-size: 0.7rem;
+            color: #8f7a66;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* formulário */
+        .form-container {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 28px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 25px -12px rgba(0,0,0,0.1);
+            border: 1px solid #ffe4d0;
+        }
+        .form-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #bc6f2c;
+            border-left: 6px solid #e67e22;
+            padding-left: 14px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        .field-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .field-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6b4c2c;
+            margin-bottom: 6px;
+        }
+        .field-group input, .field-group select, .field-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            border: 1.5px solid #eedbcb;
+            background: #fefaf7;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            outline: none;
+        }
+        .field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+            border-color: #e67e22;
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.2);
+        }
+        .button-group {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        button {
+            border: none;
+            background: #e67e22;
+            color: white;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background: #cc6f1c;
+            transform: scale(0.97);
+        }
+        .btn-secondary {
+            background: #b0a088;
+        }
+        .btn-secondary:hover {
+            background: #958063;
+        }
+        .btn-danger {
+            background: #c7423b;
+        }
+        .btn-danger:hover {
+            background: #a6342e;
+        }
+        .btn-cancel {
+            background: #9e8b78;
+        }
+
+        /* tabela */
+        .table-wrapper {
+            background: white;
+            border-radius: 28px;
+            overflow-x: auto;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f0e0d2;
+            padding: 4px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            text-align: left;
+            padding: 16px 12px;
+            background-color: #fdf3ea;
+            color: #7b4a2a;
+            font-weight: 700;
+            border-bottom: 2px solid #f0dac8;
+        }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f7e9de;
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background-color: #fff9f3;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+        .badge-entrada {
+            background: #e1f7ea;
+            color: #136b3e;
+        }
+        .badge-saida {
+            background: #ffe5e3;
+            color: #bc3f33;
+        }
+        .badge-pag {
+            background: #f2e2d4;
+            color: #8e623f;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .icon-btn {
+            background: none;
+            box-shadow: none;
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        .edit-btn {
+            background: #f3e1d0;
+            color: #a45d2a;
+        }
+        .edit-btn:hover {
+            background: #e6cfb8;
+            transform: none;
+        }
+        .delete-btn {
+            background: #fce4e2;
+            color: #bc3f33;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #aa8b6e;
+            font-weight: 500;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #b9a48c;
+        }
+        @media (max-width: 680px) {
+            body { padding: 16px; }
+            .form-container { padding: 18px; }
+            .card .value { font-size: 1.3rem; }
+            th, td { font-size: 0.75rem; padding: 10px 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎏 Registro de Caixa · Festa Junina</h1>
+        <p>Gestão de entradas, saídas, dinheiro, PIX e totais dinâmicos com Supabase</p>
+    </div>
+
+    <!-- Cards de resumo (totais tipo Excel) -->
+    <div class="summary-grid" id="summaryCards">
+        <div class="card saldo"><h3>💰 Saldo Geral</h3><div class="value" id="saldoGeral">R$ 0,00</div><div class="card-sub">Entradas - Saídas</div></div>
+        <div class="card entrada"><h3>📥 Total Entradas</h3><div class="value" id="totalEntradas">R$ 0,00</div></div>
+        <div class="card saida"><h3>📤 Total Saídas</h3><div class="value" id="totalSaidas">R$ 0,00</div></div>
+        <div class="card"><h3>💵 Entradas Dinheiro</h3><div class="value" id="totalEntradasDinheiro">R$ 0,00</div></div>
+        <div class="card"><h3>💸 Saídas Dinheiro</h3><div class="value" id="totalSaidasDinheiro">R$ 0,00</div></div>
+        <div class="card"><h3>📱 Entradas PIX/Banco</h3><div class="value" id="totalEntradasPix">R$ 0,00</div></div>
+        <div class="card"><h3>📱 Saídas PIX/Banco</h3><div class="value" id="totalSaidasPix">R$ 0,00</div></div>
+        <div class="card"><h3>🃏 Outros (Entradas)</h3><div class="value" id="totalEntradasOutros">R$ 0,00</div><div class="card-sub">Cartão/Outro meio</div></div>
+        <div class="card"><h3>🃏 Outros (Saídas)</h3><div class="value" id="totalSaidasOutros">R$ 0,00</div></div>
+    </div>
+
+    <!-- Formulário de registro / edição -->
+    <div class="form-container">
+        <div class="form-title" id="formTitle">➕ Nova transação</div>
+        <form id="transactionForm">
+            <input type="hidden" id="editId" value="">
+            <div class="form-row">
+                <div class="field-group"><label>🧑 De (Origem/Responsável)</label><input type="text" id="de" placeholder="Ex: Arthur, Caixa, Patrocinador" required></div>
+                <div class="field-group"><label>👥 Para (Destino/Responsável 2)</label><input type="text" id="para" placeholder="Ex: Henrique, Sala, Pedro Fox" required></div>
+                <div class="field-group"><label>💰 Valor (R$)</label><input type="number" step="0.01" id="valor" placeholder="0,00" required></div>
+            </div>
+            <div class="form-row">
+                <div class="field-group"><label>📅 Data</label><input type="date" id="data"></div>
+                <div class="field-group"><label>📝 Descrição</label><input type="text" id="descricao" placeholder="Motivo / detalhe"></div>
+            </div>
+            <div class="form-row">
+                <div class="field-group"><label>⚡ Tipo</label><select id="tipo" required><option value="Entrada">Entrada (receita)</option><option value="Saída">Saída (despesa)</option></select></div>
+                <div class="field-group"><label>💳 Meio de Pagamento</label><select id="meioPagamento" required><option value="Dinheiro">Dinheiro</option><option value="Pix/Banco">Pix/Banco</option><option value="Cartão">Cartão</option><option value="Outro">Outro</option></select></div>
+                <div class="field-group"><label>📌 Observações</label><input type="text" id="obs" placeholder="Opcional"></div>
+            </div>
+            <div class="button-group">
+                <button type="submit" id="submitBtn">💾 Salvar transação</button>
+                <button type="button" class="btn-secondary" id="cancelEditBtn">✖️ Cancelar edição</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de transações estilo planilha -->
+    <div class="table-wrapper">
+        <table id="transactionsTable">
+            <thead>
+                <tr><th>ID</th><th>De (Origem)</th><th>Para (Destino)</th><th>Valor</th><th>Data</th><th>Descrição</th><th>Tipo</th><th>Pagamento</th><th>Obs</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="10" class="loading">⏳ Carregando transações...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <footer>📌 Banco: Supabase | Totalizadores automáticos como planilha original (SUMIFS por tipo e meio pagamento)</footer>
+</div>
+
+<script>
+    // ======================= CONFIGURAÇÃO SUPABASE =======================
+    // ⚠️ SUBSTITUA ABAIXO PELOS SEUS DADOS DO SUPABASE (URL + ANON KEY)
+    const SUPABASE_URL = "https://seu-projeto.supabase.co";      // EX: "https://abcdefghijklm.supabase.co"
+    const SUPABASE_ANON_KEY = "SUA_ANON_KEY_AQUI";
+    
+    // Inicializa cliente supabase (somente se as credenciais forem válidas)
+    let supabase = null;
+    let isSupabaseReady = false;
+    
+    try {
+        if (SUPABASE_URL && SUPABASE_URL !== "https://seu-projeto.supabase.co" && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "SUA_ANON_KEY_AQUI") {
+            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            isSupabaseReady = true;
+            console.log("✅ Supabase cliente inicializado");
+        } else {
+            console.warn("⚠️ Configure corretamente SUPABASE_URL e SUPABASE_ANON_KEY no código.");
+            document.getElementById("tableBody").innerHTML = `<tr><td colspan="10" style="color:#b33;">❌ Supabase não configurado. Edite o código com suas credenciais e crie a tabela 'cash_transactions' conforme instruções.</td></tr>`;
+        }
+    } catch(e) {
+        console.error("Erro ao criar cliente Supabase", e);
+        document.getElementById("tableBody").innerHTML = `<tr><td colspan="10">❌ Erro de configuração do Supabase.</td></tr>`;
+    }
+
+    // Variáveis globais
+    let currentTransactions = [];
+
+    // ----- Função para calcular todos os totais (baseado nas transações) igual planilha excel -----
+    function calculateTotals(transactions) {
+        let totalEntradas = 0, totalSaidas = 0;
+        let entradasDinheiro = 0, saidasDinheiro = 0;
+        let entradasPix = 0, saidasPix = 0;
+        let entradasOutros = 0, saidasOutros = 0;
+
+        for (let t of transactions) {
+            const valor = parseFloat(t.valor) || 0;
+            const tipo = t.tipo;
+            const meio = t.meio_pagamento;
+            
+            if (tipo === "Entrada") {
+                totalEntradas += valor;
+                if (meio === "Dinheiro") entradasDinheiro += valor;
+                else if (meio === "Pix/Banco") entradasPix += valor;
+                else entradasOutros += valor;   // Cartão, Outro, etc
+            } 
+            else if (tipo === "Saída") {
+                totalSaidas += valor;
+                if (meio === "Dinheiro") saidasDinheiro += valor;
+                else if (meio === "Pix/Banco") saidasPix += valor;
+                else saidasOutros += valor;
+            }
+        }
+        const saldo = totalEntradas - totalSaidas;
+        return { totalEntradas, totalSaidas, entradasDinheiro, saidasDinheiro, entradasPix, saidasPix, entradasOutros, saidasOutros, saldo };
+    }
+
+    // Atualizar interface com os cards
+    function updateSummaryUI(transactions) {
+        const totals = calculateTotals(transactions);
+        document.getElementById("saldoGeral").innerHTML = `R$ ${totals.saldo.toFixed(2)}`;
+        document.getElementById("totalEntradas").innerHTML = `R$ ${totals.totalEntradas.toFixed(2)}`;
+        document.getElementById("totalSaidas").innerHTML = `R$ ${totals.totalSaidas.toFixed(2)}`;
+        document.getElementById("totalEntradasDinheiro").innerHTML = `R$ ${totals.entradasDinheiro.toFixed(2)}`;
+        document.getElementById("totalSaidasDinheiro").innerHTML = `R$ ${totals.saidasDinheiro.toFixed(2)}`;
+        document.getElementById("totalEntradasPix").innerHTML = `R$ ${totals.entradasPix.toFixed(2)}`;
+        document.getElementById("totalSaidasPix").innerHTML = `R$ ${totals.saidasPix.toFixed(2)}`;
+        document.getElementById("totalEntradasOutros").innerHTML = `R$ ${totals.entradasOutros.toFixed(2)}`;
+        document.getElementById("totalSaidasOutros").innerHTML = `R$ ${totals.saidasOutros.toFixed(2)}`;
+    }
+
+    // Renderiza a tabela com ações (editar/excluir)
+    function renderTable(transactions) {
+        const tbody = document.getElementById("tableBody");
+        if (!transactions.length) {
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:32px;">📭 Nenhuma movimentação registrada. Adicione usando o formulário.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = "";
+        transactions.forEach(trans => {
+            const row = tbody.insertRow();
+            const dateStr = trans.data ? new Date(trans.data).toLocaleDateString('pt-BR') : '—';
+            const tipoClass = trans.tipo === "Entrada" ? "badge-entrada" : "badge-saida";
+            const tipoLabel = trans.tipo === "Entrada" ? "📥 Entrada" : "📤 Saída";
+            row.innerHTML = `
+                <td style="font-weight:500;">${trans.id}</td>
+                <td>${escapeHtml(trans.de || '')}</td>
+                <td>${escapeHtml(trans.para || '')}</td>
+                <td><strong>R$ ${parseFloat(trans.valor).toFixed(2)}</strong></td>
+                <td>${dateStr}</td>
+                <td style="max-width:180px; white-space:nowrap; overflow-x:auto;">${escapeHtml(trans.descricao || '')}</td>
+                <td><span class="badge ${tipoClass}">${tipoLabel}</span></td>
+                <td><span class="badge badge-pag">${escapeHtml(trans.meio_pagamento || '')}</span></td>
+                <td>${escapeHtml(trans.obs || '')}</td>
+                <td class="actions">
+                    <button class="icon-btn edit-btn" data-id="${trans.id}">✏️ Editar</button>
+                    <button class="icon-btn delete-btn" data-id="${trans.id}">🗑️ Excluir</button>
+                </td>
+            `;
+        });
+        // adicionar eventos dinâmicos (delegação já colocada no document)
+        attachTableEvents();
+    }
+
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    function attachTableEvents() {
+        // Usamos event delegation nos botões de editar/excluir já que a tabela é recriada
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.removeEventListener('click', handleEditClick);
+            btn.addEventListener('click', handleEditClick);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.removeEventListener('click', handleDeleteClick);
+            btn.addEventListener('click', handleDeleteClick);
+        });
+    }
+
+    async function handleEditClick(e) {
+        const id = parseInt(e.currentTarget.getAttribute('data-id'));
+        const transaction = currentTransactions.find(t => t.id === id);
+        if (!transaction) return;
+        // Preencher formulário com dados da transação
+        document.getElementById("editId").value = transaction.id;
+        document.getElementById("de").value = transaction.de || '';
+        document.getElementById("para").value = transaction.para || '';
+        document.getElementById("valor").value = transaction.valor;
+        document.getElementById("data").value = transaction.data ? transaction.data.slice(0,10) : '';
+        document.getElementById("descricao").value = transaction.descricao || '';
+        document.getElementById("tipo").value = transaction.tipo;
+        document.getElementById("meioPagamento").value = transaction.meio_pagamento;
+        document.getElementById("obs").value = transaction.obs || '';
+        document.getElementById("formTitle").innerHTML = "✏️ Editando transação #" + transaction.id;
+        document.getElementById("submitBtn").textContent = "✏️ Atualizar";
+        // rolar até o formulário
+        document.querySelector(".form-container").scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function handleDeleteClick(e) {
+        const id = parseInt(e.currentTarget.getAttribute('data-id'));
+        const confirmDelete = confirm("Tem certeza que deseja excluir esta movimentação?");
+        if (!confirmDelete) return;
+        if (!isSupabaseReady) { alert("Supabase não configurado"); return; }
+        try {
+            const { error } = await supabase.from("cash_transactions").delete().eq("id", id);
+            if (error) throw error;
+            await fetchTransactions();
+        } catch (err) {
+            alert("Erro ao excluir: " + err.message);
+        }
+    }
+
+    // Buscar todos os registros
+    async function fetchTransactions() {
+        if (!isSupabaseReady) return;
+        try {
+            const { data, error } = await supabase
+                .from("cash_transactions")
+                .select("*")
+                .order("id", { ascending: false });
+            if (error) throw error;
+            currentTransactions = data || [];
+            renderTable(currentTransactions);
+            updateSummaryUI(currentTransactions);
+        } catch (err) {
+            console.error(err);
+            document.getElementById("tableBody").innerHTML = `<tr><td colspan="10">❌ Erro ao carregar dados: ${err.message}</td></tr>`;
+        }
+    }
+
+    // Inserir ou atualizar transação
+    async function saveTransaction(event) {
+        event.preventDefault();
+        if (!isSupabaseReady) {
+            alert("⚠️ Supabase não está configurado. Verifique as credenciais e crie a tabela.");
+            return;
+        }
+        
+        const editId = document.getElementById("editId").value;
+        const de = document.getElementById("de").value.trim();
+        const para = document.getElementById("para").value.trim();
+        let valor = parseFloat(document.getElementById("valor").value);
+        if (isNaN(valor) || valor <= 0) {
+            alert("Informe um valor válido maior que zero.");
+            return;
+        }
+        const data = document.getElementById("data").value || null;
+        const descricao = document.getElementById("descricao").value.trim();
+        const tipo = document.getElementById("tipo").value;
+        const meioPagamento = document.getElementById("meioPagamento").value;
+        const obs = document.getElementById("obs").value.trim();
+        
+        if (!de || !para) {
+            alert("Os campos 'De (Origem)' e 'Para (Destino)' são obrigatórios.");
+            return;
+        }
+        
+        const payload = {
+            de, para, valor, data, descricao, tipo, meio_pagamento: meioPagamento, obs
+        };
+        
+        try {
+            if (editId) {
+                // UPDATE
+                const { error } = await supabase
+                    .from("cash_transactions")
+                    .update(payload)
+                    .eq("id", parseInt(editId));
+                if (error) throw error;
+            } else {
+                // INSERT
+                const { error } = await supabase.from("cash_transactions").insert([payload]);
+                if (error) throw error;
+            }
+            resetForm();
+            await fetchTransactions();
+        } catch (err) {
+            alert("Erro ao salvar: " + err.message);
+        }
+    }
+
+    function resetForm() {
+        document.getElementById("editId").value = "";
+        document.getElementById("transactionForm").reset();
+        document.getElementById("formTitle").innerHTML = "➕ Nova transação";
+        document.getElementById("submitBtn").textContent = "💾 Salvar transação";
+        // setar data atual como padrão
+        const hoje = new Date().toISOString().slice(0,10);
+        if(!document.getElementById("data").value) document.getElementById("data").value = hoje;
+    }
+
+    // Cancelar edição
+    function cancelEdit() {
+        resetForm();
+    }
+
+    // Validação e instruções para criar tabela no Supabase
+    function showTableCreationGuide() {
+        if (!isSupabaseReady) {
+            const guideHtml = `<tr><td colspan="10" style="background:#fff1e6;"><div style="padding:12px;">⚠️ <strong>Configure o Supabase:</strong><br/>
+            1. Crie um projeto no Supabase<br/>
+            2. No SQL Editor, execute:<br/>
+            <code style="background:#eee; display:block; padding:8px; margin:10px 0;border-radius:12px;">
+            CREATE TABLE cash_transactions (<br/>
+            &nbsp;&nbsp;id SERIAL PRIMARY KEY,<br/>
+            &nbsp;&nbsp;de TEXT NOT NULL,<br/>
+            &nbsp;&nbsp;para TEXT NOT NULL,<br/>
+            &nbsp;&nbsp;valor DECIMAL(10,2) NOT NULL,<br/>
+            &nbsp;&nbsp;data DATE,<br/>
+            &nbsp;&nbsp;descricao TEXT,<br/>
+            &nbsp;&nbsp;tipo TEXT NOT NULL CHECK (tipo IN ('Entrada','Saída')),<br/>
+            &nbsp;&nbsp;meio_pagamento TEXT NOT NULL,<br/>
+            &nbsp;&nbsp;obs TEXT<br/>);
+            </code>
+            3. Ativar RLS ou permitir acesso público anon (para testes libere insert/select/update/delete).<br/>
+            4. Substituir URL e ANON_KEY no código.<br/>
+            🔁 Após configurar, recarregue a página.
+            </div></td></tr>`;
+            document.getElementById("tableBody").innerHTML = guideHtml;
+        }
+    }
+
+    // inicialização: definir data padrão, tentar carregar dados se supabase ok
+    window.addEventListener("DOMContentLoaded", () => {
+        const today = new Date().toISOString().slice(0,10);
+        const dataInput = document.getElementById("data");
+        if (dataInput && !dataInput.value) dataInput.value = today;
+        
+        const form = document.getElementById("transactionForm");
+        form.addEventListener("submit", saveTransaction);
+        document.getElementById("cancelEditBtn").addEventListener("click", cancelEdit);
+        
+        if (isSupabaseReady) {
+            fetchTransactions().catch(console.warn);
+        } else {
+            showTableCreationGuide();
+            // preencher cards zerados
+            updateSummaryUI([]);
+        }
+    });
+</script>
+</body>
+</html>
