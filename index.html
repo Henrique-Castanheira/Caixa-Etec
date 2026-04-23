@@ -403,7 +403,6 @@
 
     <div class="topbar">
         <div class="header-left">
-            <div class="header-icon">🎏</div>
             <div class="header-text">
                 <h1>Caixa · Festa Junina</h1>
                 <p>Gestão de entradas e saídas · Dinheiro, PIX, Cartão</p>
@@ -439,8 +438,8 @@
         <form id="transactionForm">
             <input type="hidden" id="editId" value="">
             <div class="form-row">
-                <div class="field-group"><label>🧑 De (Origem)</label><input type="text" id="de" placeholder="Ex: Arthur, Caixa" required></div>
-                <div class="field-group"><label>👥 Para (Destino)</label><input type="text" id="para" placeholder="Ex: Henrique, Sala" required></div>
+                <div class="field-group"><label>🧑 De (Origem)</label><input type="text" id="de" placeholder="Ex: Aluno,Sala,Caixa" required></div>
+                <div class="field-group"><label>👥 Para (Destino)</label><input type="text" id="para" placeholder="Ex: Aluno, Sala, Caixa" required></div>
                 <div class="field-group"><label>💰 Valor (R$)</label><input type="number" step="0.01" id="valor" placeholder="0,00" required></div>
             </div>
             <div class="form-row">
@@ -448,7 +447,7 @@
                 <div class="field-group"><label>📝 Descrição</label><input type="text" id="descricao" placeholder="Motivo / detalhe"></div>
             </div>
             <div class="form-row">
-                <div class="field-group"><label>⚡ Tipo</label>
+                <div class="field-group"><label>Tipo</label>
                     <select id="tipo" required>
                         <option value="Entrada">Entrada</option>
                         <option value="Saída">Saída</option>
@@ -462,7 +461,7 @@
                         <option value="Outro">Outro</option>
                     </select>
                 </div>
-                <div class="field-group"><label>📌 Observações</label><input type="text" id="obs" placeholder="Opcional"></div>
+                <div class="field-group"><label>📌Observações</label><input type="text" id="obs" placeholder="Opcional"></div>
             </div>
             <div class="btn-group">
                 <button type="submit" class="btn-primary" id="submitBtn">💾 Salvar transação</button>
